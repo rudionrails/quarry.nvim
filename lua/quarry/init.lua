@@ -31,7 +31,7 @@ local _defaults = {
 }
 
 ---@private
-M._has_setup = false
+M._is_setup = false
 
 ---@private
 M._tools_installed = {}
@@ -60,12 +60,12 @@ end
 --- Setup the plugin
 ---@param opts quarry.Config
 function M.setup(opts)
-	-- if M._has_setup then
-	-- 	notify("setup() already called")
-	-- 	return -- do nothing
-	-- else
-	-- 	M._has_setup = true
-	-- end
+	if M._is_setup then
+		notify("setup() already called")
+		return -- do nothing
+	else
+		M._is_setup = true
+	end
 
 	local options = vim.tbl_deep_extend("force", {}, _defaults, opts or {})
 	local capabilities = options.capabilities or {}
