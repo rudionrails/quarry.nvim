@@ -75,7 +75,6 @@ function M.setup(opts)
 	-- install tools from `ensure_installed` option
 	mason_registry:on("package:install:success", installer.on_success)
 	mason_registry:on("package:install:failed", installer.on_failed)
-
 	installer.run(options.ensure_installed)
 
 	for lsp, server in pairs(options.servers) do
