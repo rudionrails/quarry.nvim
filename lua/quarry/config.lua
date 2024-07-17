@@ -5,22 +5,29 @@ local mason_registry = require("mason-registry")
 local installer = require("quarry.installer")
 local u = require("quarry.utils")
 
+local M = {}
+
+---@private
+M._is_setup = false
+
 ---@class quarry.Server
 ---@field ensure_installed string[] The list of tools to install for the server
 ---@field filetypes? string[] Specify the filetypes when to install the tools
 ---@field opts? table<any, any> The LSP-specific options
 ---@field setup? fun(name: string, opts: table<any any>) Custom setup function for the LSP (if not defined, generic default will be used)
 
+---@private
+---@type quarry.Server
+M._server = {
+	ensure_installed = {},
+	opts = {},
+}
+
 ---@class quarry.Config
----@field on_attach? fun(client, bufnr) Global on_attach to be passed to every LSP
+---@field on_attach? fun(client: vim.lsp.Client, bufnr: number) Global on_attach to be passed to every LSP
 ---@field capabilities? lsp.ClientCapabilities|fun():lsp.ClientCapabilities Global capabilities to be passed to every LSP
 ---@field ensure_installed? string[] The list of tools to be installed
 ---@field servers? table<string, quarry.Server> Configure every LSP individually if needed
-
-local M = {}
-
----@private
-M._is_setup = false
 
 ---@private
 ---@type quarry.Config
@@ -30,13 +37,6 @@ M._config = {
 	end,
 	ensure_installed = {},
 	servers = {},
-}
-
----@private
----@type quarry.Server
-M._server = {
-	ensure_installed = {},
-	opts = {},
 }
 
 --- Setup the plugin
