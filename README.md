@@ -32,7 +32,6 @@ return {
             "williamboman/mason-lspconfig.nvim",
             "neovim/nvim-lspconfig"
         },
-
     }
 }
 
@@ -45,15 +44,15 @@ return {
 ```lua
 require("quarry").setup({
     -- capabilities can also be defined as Lua table, ex. `capabilities = {}`
-	capabilities = function()
-		return vim.tbl_deep_extend("force", {}, vim.lsp.protocol.make_client_capabilities())
-	end,
+    capabilities = function()
+        return vim.tbl_deep_extend("force", {}, vim.lsp.protocol.make_client_capabilities())
+    end,
 
     -- Provide globally required mason tools; will be installed upon `require("quarry").setup()`
-	ensure_installed = {},
+    ensure_installed = {},
 
     -- Provide specific LSP here. A default server handler will be defined in any case.
-	servers = {},
+    servers = {},
 })
 ```
 
@@ -99,54 +98,56 @@ require("quarry").setup({
 -- quarry.nvim uses mason-lspconfig under the hood to setup LSP and other tools. The settings passed for
 -- each server look similar but are slightly adjusted to allow for easier composition.
 require("quarry").setup({
-	servers = {
+    servers = {
+        ---
         -- use the LSP name as a key (like you would for mason-lspconfig)
         lua_ls = {
-            ---
-            -- Tools are installed only when opening such filetypes (lazily), otherwise thy are installed
-            -- upon `require("quarry").setup()`. The `filetypes` key is optional and unrelated to the 
-            -- filetypes option in the lspconfig package.
-            ---@type string[]
-            filetypes = { "lua" },
 
-            ---
-            -- Provide the tools to install. This allows for all available mason tools, not just LSP.
-            -- You can omit `lua_ls` in the below example, as it will be installed automatically. It is
-            -- taken for any LSP from the server key of the table.
-            ---@type string[]
-            ensure_installed = { "lua_ls", "stylua", "luacheck" },
+        ---
+        -- Tools are installed only when opening such filetypes (lazily), otherwise thy are installed
+        -- upon `require("quarry").setup()`. The `filetypes` key is optional and unrelated to the 
+        -- filetypes option in the lspconfig package.
+        ---@type string[]
+        filetypes = { "lua" },
 
-            ---
-            -- Pass the opts for the language server as you would with mason-lspconfig
-            ---@type table<any, any>
-            opts = {
-                settings = {
-                    Lua = {
-                        completion = { callSnippet = "Replace" },
-                        doc = { privateName = { "^_" } },
-                        codeLens = { enable = true },
-                        hint = { enable = true },
-                        workspace = { checkThirdParty = false },
-                    },
+        ---
+        -- Provide the tools to install. This allows for all available mason tools, not just LSP.
+        -- You can omit `lua_ls` in the below example, as it will be installed automatically. It is
+        -- taken for any LSP from the server key of the table.
+        ---@type string[]
+        ensure_installed = { "lua_ls", "stylua", "luacheck" },
 
-                    -- Do not send telemetry data containing a randomized but unique identifier
-                    telemetry = { enable = false },
+        ---
+        -- Pass the opts for the language server as you would with mason-lspconfig
+        ---@type table<any, any>
+        opts = {
+            settings = {
+                Lua = {
+                    completion = { callSnippet = "Replace" },
+                    doc = { privateName = { "^_" } },
+                    codeLens = { enable = true },
+                    hint = { enable = true },
+                    workspace = { checkThirdParty = false },
                 },
-            },
 
-            ---
-            -- Provide a custom setup function. When defined, this will override the default
-            -- provided by quarry.nvim for this LSP. The function takes 2 arguments: the name of
-            -- the lsp, ex. lua_ls, rust_analyzer, and the configuration defined in the `opts` table.
-            ---@type fun(name: string, opts: table<any any>)
-            setup = function(name, opts)
-                require("lspconfig")[name].setup(opts)
-            end,
+                -- Do not send telemetry data containing a randomized but unique identifier
+                telemetry = { enable = false },
+            },
         },
 
         ---
-        -- Other LSP will follow the same pattern, ex.
-        -- rust_analyzer = { ... }
+        -- Provide a custom setup function. When defined, this will override the default
+        -- provided by quarry.nvim for this LSP. The function takes 2 arguments: the name of
+        -- the lsp, ex. lua_ls, rust_analyzer, and the configuration defined in the `opts` table.
+        ---@type fun(name: string, opts: table<any any>)
+        setup = function(name, opts)
+            require("lspconfig")[name].setup(opts)
+        end,
+    },
+
+    ---
+    -- Other LSP will follow the same pattern, ex.
+    -- rust_analyzer = { ... }
     },
 })
 ```
@@ -166,8 +167,8 @@ When you use many LSP, your configuration table may become quite large. You can 
 
 -- ... require lazy.nvim as you usually would. Check out the documentation for detailed instructions ...
 require("lazy").setup({
-	{ import = "plugins" },
-	{ import = "extras" }, -- <- this is the relevant line
+    { import = "plugins" },
+    { import = "extras" }, -- <- this is the relevant line
 }, {
     -- .. regular lazy.nvim configuration ...
 })
@@ -236,89 +237,83 @@ return {
 -- file: lua/extras/lua.lua
 
 return {
-	"rudionrails/quarry.nvim",
-	opts = {
-		servers = {
-			lua_ls = {
-				filetypes = { "lua" },
-				ensure_installed = {
-					"lua_ls",
-					"stylua",
-					"luacheck",
-				},
-				opts = {
-					settings = {
-						Lua = {
-							completion = { callSnippet = "Replace" },
-							doc = { privateName = { "^_" } },
-							codeLens = { enable = true },
-							hint = {
-								enable = true,
-								setType = false,
-								paramType = true,
-								paramName = "Disable",
-								semicolon = "Disable",
-								arrayIndex = "Disable",
-							},
-							workspace = {
-								checkThirdParty = false,
-							},
-						},
+    "rudionrails/quarry.nvim",
+    opts = {
+        servers = {
+            lua_ls = {
+                filetypes = { "lua" },
+                ensure_installed = { "lua_ls", "stylua", "luacheck" },
+                opts = {
+                    settings = {
+                        Lua = {
+                            completion = { callSnippet = "Replace" },
+                            doc = { privateName = { "^_" } },
+                            codeLens = { enable = true },
+                            hint = {
+                                enable = true,
+                                setType = false,
+                                paramType = true,
+                                paramName = "Disable",
+                                semicolon = "Disable",
+                                arrayIndex = "Disable",
+                            },
+                            workspace = {
+                                checkThirdParty = false,
+                            },
+                        },
 
-						-- Do not send telemetry data containing a randomized but unique identifier
-						telemetry = { enable = false },
-					},
-				},
-			},
-		},
-	},
+                        -- Do not send telemetry data containing a randomized but unique identifier
+                        telemetry = { enable = false },
+                    },
+                },
+            },
+        },
+    },
 }
 
 ```
 
 ```lua
--- file: lua/extras/tsserver.lua
+-- file: lua/extras/typescript.lua
 
 return {
-	"rudionrails/quarry.nvim",
-	opts = {
-		servers = {
-			tsserver = {
-				filetypes = {
+    "rudionrails/quarry.nvim",
+    opts = {
+        servers = {
+            tsserver = {
+                filetypes = {
                     "javascript",
                     "javascriptreact",
                     "javascript.jsx",
                     "typescript",
                     "typescriptreact",
                     "typescript.tsx",
-				},
+                },
 
-				ensure_installed = {
-					"tsserver",
-					"prettier", -- prettierd as alternative
-					"eslint", -- eslint_d as alternative
-				},
+                ensure_installed = {
+                    "tsserver",
+                    "prettier", -- prettierd as alternative
+                    "eslint", -- eslint_d as alternative
+                },
 
-				opts = {
-					completions = {
-						completeFunctionCalls = true,
-					},
-					init_options = {
-						preferences = {
-							includeInlayParameterNameHints = "all", -- 'none' | 'literals' | 'all';
-							includeInlayParameterNameHintsWhenArgumentMatchesName = false,
-							includeInlayFunctionParameterTypeHints = true,
-							includeInlayVariableTypeHints = true,
-							includeInlayPropertyDeclarationTypeHints = true,
-							includeInlayFunctionLikeReturnTypeHints = true,
-							includeInlayEnumMemberValueHints = true,
-							importModuleSpecifierPreference = "non-relative",
-						},
-					},
-				},
-			},
-		},
-	},
+                opts = {
+                    completions = { completeFunctionCalls = true },
+                    init_options = {
+                        preferences = {
+                            includeInlayParameterNameHints = "all", -- 'none' | 'literals' | 'all';
+                            includeInlayParameterNameHintsWhenArgumentMatchesName = false,
+                            includeInlayFunctionParameterTypeHints = true,
+                            includeInlayVariableTypeHints = true,
+                            includeInlayPropertyDeclarationTypeHints = true,
+                            includeInlayFunctionLikeReturnTypeHints = true,
+                            includeInlayEnumMemberValueHints = true,
+                            importModuleSpecifierPreference = "non-relative",
+                        },
+                    },
+                },
+            },
+        },
+    },
 }
 
 ```
