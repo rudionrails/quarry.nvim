@@ -10,7 +10,7 @@ M._opts = {
 	---@type string
 	name = "",
 	---@type string[]
-	ft = {},
+	filetypes = {},
 }
 
 ---@private
@@ -69,13 +69,13 @@ function M.run(tools, opts)
 
 	opts = vim.tbl_deep_extend("force", {}, M._opts, opts or {})
 
-	if #opts.ft == 0 then
+	if #opts.filetypes == 0 then
 		-- install now
 		M._run(tools)
 	else
 		-- register FileType event and install later
 		local group = vim.api.nvim_create_augroup(
-			string.format("quarry_%s_%s", table.concat(tools, "_"), table.concat(opts.ft, "_")),
+			string.format("quarry_%s_%s", table.concat(tools, "_"), table.concat(opts.filetypes, "_")),
 			{ clear = true }
 		)
 		-- local group = vim.api.nvim_create_augroup("quarry_" .. lsp .. "_" .. table.concat(tools, "_"))
@@ -84,7 +84,7 @@ function M.run(tools, opts)
 			M._run(tools)
 		end
 
-		vim.api.nvim_create_autocmd("FileType", { group = group, pattern = opts.ft, callback = callback })
+		vim.api.nvim_create_autocmd("FileType", { group = group, pattern = opts.filetypes, callback = callback })
 	end
 end
 

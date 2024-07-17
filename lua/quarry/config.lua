@@ -7,12 +7,13 @@ local u = require("quarry.utils")
 
 ---@class quarry.Server
 ---@field ensure_installed string[] The list of tools to install for the server
----@field ft? string[] Specify the filetypes when to install the tools
+---@field filetypes? string[] Specify the filetypes when to install the tools
 ---@field opts? table<any, any> The LSP-specific options
 ---@field setup? fun(name: string, opts: table<any any>) Custom setup function for the LSP (if not defined, generic default will be used)
 
 ---@class quarry.Config
----@field capabilities? lsp.ClientCapabilities|fun():lsp.ClientCapabilities Will be passed to every LSP
+---@field on_attach? fun(client, bufnr) Global on_attach to be passed to every LSP
+---@field capabilities? lsp.ClientCapabilities|fun():lsp.ClientCapabilities Global capabilities to be passed to every LSP
 ---@field ensure_installed? string[] The list of tools to be installed
 ---@field servers? table<string, quarry.Server> Configure every LSP individually if needed
 
@@ -56,8 +57,11 @@ function M.setup(opts)
 		handlers = {
 			function(name)
 				local server = vim.tbl_deep_extend("force", {}, M._server, options.servers[name] or {})
-				local server_opts =
-					vim.tbl_deep_extend("force", { capabilities = vim.deepcopy(capabilities) }, server.opts or {})
+				local server_opts = vim.tbl_deep_extend(
+					"force",
+					{ capabilities = vim.deepcopy(capabilities), on_attach = options.on_attach },
+					server.opts or {}
+				)
 
 				if type(server.setup) == "function" then
 					server.setup(name, server_opts)
@@ -76,7 +80,7 @@ function M.setup(opts)
 
 	for lsp, server in pairs(options.servers) do
 		server = vim.tbl_deep_extend("force", M._server, server or {})
-		installer.run(server.ensure_installed, { name = lsp, ft = server.ft })
+		installer.run(server.ensure_installed, { name = lsp, filetypes = server.filetypes })
 	end
 end
 
