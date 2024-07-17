@@ -3,7 +3,7 @@ local mason_lspconfig = require("mason-lspconfig")
 local mason_registry = require("mason-registry")
 
 local installer = require("quarry.installer")
-local notify = require("quarry.utils").notify
+local u = require("quarry.utils")
 
 ---@class quarry.Server
 ---@field ensure_installed string[] The list of tools to install for the server
@@ -21,8 +21,8 @@ local M = {}
 ---@private
 M._is_setup = false
 
----@type quarry.Config
 ---@private
+---@type quarry.Config
 M._config = {
 	capabilities = function()
 		return vim.tbl_deep_extend("force", {}, vim.lsp.protocol.make_client_capabilities())
@@ -31,8 +31,8 @@ M._config = {
 	servers = {},
 }
 
----@type quarry.Server
 ---@private
+---@type quarry.Server
 M._server = {
 	ensure_installed = {},
 	opts = {},
@@ -42,7 +42,7 @@ M._server = {
 ---@param opts? quarry.Config
 function M.setup(opts)
 	if M._is_setup then
-		notify("setup() already called", vim.log.levels.WARN)
+		u.notify("setup() already called", vim.log.levels.WARN)
 		return
 	else
 		M._is_setup = true

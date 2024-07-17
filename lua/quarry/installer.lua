@@ -1,7 +1,7 @@
 local mason_lspconfig = require("mason-lspconfig")
 local mason_registry = require("mason-registry")
 
-local notify = require("quarry.utils").notify
+local u = require("quarry.utils")
 
 local M = {}
 
@@ -23,7 +23,6 @@ function M.on_success(p)
 	end
 
 	M._tools_installed[p.name] = false
-	notify("Success " .. p.name)
 
 	-- trigger FileType event to possibly load the newly installed tools
 	vim.defer_fn(function()
@@ -38,7 +37,7 @@ function M.on_failed(p)
 	end
 
 	M._tools_installed[p.name] = false
-	notify(string.format('"%s" could not be installed. Check :MasonLog for details.', p.name), vim.log.levels.ERROR)
+	u.notify(string.format('"%s" could not be installed. Check :MasonLog for details.', p.name), vim.log.levels.ERROR)
 end
 
 ---@private
