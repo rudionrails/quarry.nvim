@@ -1,17 +1,6 @@
-local mason_lspconfig = require("mason-lspconfig")
-local mason_registry = require("mason-registry")
-
 local u = require("quarry.utils")
 
 local M = {}
-
----@class quarry.installer.Options
-M._opts = {
-	---@type string
-	name = "",
-	---@type string[]
-	filetypes = {},
-}
 
 ---@private
 M._tools_installed = {}
@@ -43,6 +32,9 @@ end
 ---@private
 ---@param tools string[]
 function M._run(tools)
+	local mason_lspconfig = require("mason-lspconfig")
+	local mason_registry = require("mason-registry")
+
 	for _, tool in ipairs(tools) do
 		local name = mason_lspconfig.get_mappings().lspconfig_to_mason[tool] or tool
 		local p = mason_registry.get_package(name)
@@ -60,31 +52,34 @@ function M._run(tools)
 	end
 end
 
+---
+-- Install the provided tools via mason, mason-lspconfig
+--
 ---@param tools string[]
----@params opts? quarry.installer.Options
-function M.run(tools, opts)
+---@param filetypes string[]
+function M.run(tools, filetypes)
 	if #tools == 0 then
 		return
 	end
 
-	opts = vim.tbl_deep_extend("force", {}, M._opts, opts or {})
-
-	if #opts.filetypes == 0 then
+	if #filetypes == 0 then
 		-- install now
 		M._run(tools)
 	else
 		-- register FileType event and install later
 		local group = vim.api.nvim_create_augroup(
-			string.format("quarry_%s_%s", table.concat(tools, "_"), table.concat(opts.filetypes, "_")),
+			string.format("quarry_%s_%s", table.concat(tools, "_"), table.concat(filetypes, "_")),
 			{ clear = true }
 		)
-		-- local group = vim.api.nvim_create_augroup("quarry_" .. lsp .. "_" .. table.concat(tools, "_"))
-		local callback = function()
-			vim.api.nvim_del_augroup_by_id(group)
-			M._run(tools)
-		end
 
-		vim.api.nvim_create_autocmd("FileType", { group = group, pattern = opts.filetypes, callback = callback })
+		vim.api.nvim_create_autocmd("FileType", {
+			group = group,
+			pattern = filetypes,
+			callback = function()
+				vim.api.nvim_del_augroup_by_id(group)
+				M._run(tools)
+			end,
+		})
 	end
 end
 

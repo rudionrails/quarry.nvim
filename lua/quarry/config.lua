@@ -1,4 +1,3 @@
-local lspconfig = require("lspconfig")
 local mason_lspconfig = require("mason-lspconfig")
 local mason_registry = require("mason-registry")
 
@@ -11,32 +10,59 @@ local M = {}
 M._is_setup = false
 
 ---@class quarry.Server
----@field ensure_installed string[] The list of tools to install for the server
----@field filetypes? string[] Specify the filetypes when to install the tools
----@field opts? table<any, any> The LSP-specific options
----@field setup? fun(name: string, opts: table<any any>) Custom setup function for the LSP (if not defined, generic default will be used)
-
----@private
----@type quarry.Server
 M._server = {
+	---
+	-- Specify the filetypes when to install the tools
+	---@type string[]
+	filetypes = {},
+
+	---
+	-- List of tools to install for the server
+	---@type string[]
 	ensure_installed = {},
+
+	---
+	-- The LSP-specific options
+	---@type table<any, any>
 	opts = {},
 }
 
----@class quarry.Config
----@field on_attach? fun(client: vim.lsp.Client, bufnr: number) Global on_attach to be passed to every LSP
----@field capabilities? lsp.ClientCapabilities|fun():lsp.ClientCapabilities Global capabilities to be passed to every LSP
----@field ensure_installed? string[] The list of tools to be installed
----@field servers? table<string, quarry.Server> Configure every LSP individually if needed
-
----@private
----@type quarry.Config
+---@lass quarry.Config
 M._config = {
+	---
+	-- Global capabilities that are passed to every LSP
+	---@type lsp.ClientCapabilities|fun():lsp.ClientCapabilities
 	capabilities = function()
 		return vim.tbl_deep_extend("force", {}, vim.lsp.protocol.make_client_capabilities())
 	end,
+
+	---
+	-- Global on_attach that is passed to every LSP
+	---@type fun(client: lsp.Client, bufnr: integer)
+	on_attach = nil,
+
+	---
+	-- List of global tools to install
+	---@type string[]
 	ensure_installed = {},
+
+	---
+	-- Configure every LSP individually. Ideal to separate into multiple files.
+	---@type table<string, quarry.Server>
 	servers = {},
+
+	---
+	-- Default setup function assumes lspconfig, but will gracefully do nothing if not available,
+	-- so that you can override with your custom implementation.
+	---@type table<string, fun(nane: string, opts: table<any, any>)>
+	setup = {
+		_ = function(name, opts)
+			local ok, lspconfig = pcall(require, "lspconfig")
+			if ok then
+				lspconfig[name].setup(opts)
+			end
+		end,
+	},
 }
 
 --- Setup the plugin
@@ -51,26 +77,25 @@ function M.setup(opts)
 
 	local options = vim.tbl_deep_extend("force", {}, M._config, opts or {})
 	local capabilities = type(options.capabilities) == "function" and options.capabilities() or options.capabilities
-	local fallback = vim.tbl_deep_extend("force", {}, M._server, options.servers["_"] or {})
 
 	-- setup servers from `servers` option
 	mason_lspconfig.setup({
 		handlers = {
 			function(name)
+				local setup = options.setup[name] or options.setup["_"]
 				local server = vim.tbl_deep_extend("force", {}, M._server, options.servers[name] or {})
-				local server_opts = {
+				local server_options = vim.tbl_deep_extend("force", {
 					capabilities = vim.deepcopy(capabilities),
 					on_attach = options.on_attach,
-				}
+				}, server.opts or {})
 
-				if type(server.setup) == "function" then
-					server_opts = vim.tbl_deep_extend("force", server_opts, server.opts or {})
-					server.setup(name, server_opts)
-				elseif type(fallback.setup) == "function" then
-					server_opts = vim.tbl_deep_extend("force", server_opts, fallback.opts or {})
-					fallback.setup(name, server_opts)
+				if type(setup) == "function" then
+					setup(name, server_options)
 				else
-					lspconfig[name].setup(server_opts)
+					local ok, lspconfig = pcall(require, "lspconfig")
+					if ok then
+						lspconfig[name].setup(server_options)
+					end
 				end
 			end,
 		},
@@ -82,8 +107,10 @@ function M.setup(opts)
 	installer.run(options.ensure_installed)
 
 	for lsp, server in pairs(options.servers) do
-		server = vim.tbl_deep_extend("force", M._server, server or {})
-		installer.run(server.ensure_installed, { name = lsp, filetypes = server.filetypes })
+		server = vim.tbl_deep_extend("force", {}, M._server, server or {})
+		table.insert(server.ensure_installed, lsp)
+
+		installer.run(server.ensure_installed, server.filetypes)
 	end
 end
 

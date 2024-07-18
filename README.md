@@ -33,6 +33,10 @@ return {
         dependencies = {
             "williamboman/mason.nvim",
             "williamboman/mason-lspconfig.nvim",
+
+            -- the default server config assumes that you use lspconfig. If this is not the case,
+            -- you can omit this and override with your own implementaiotn (see below examples).
+            -- quarry.nvim will gracefully hanle if lspconfig is not available.
             "neovim/nvim-lspconfig"
         },
     }
@@ -43,6 +47,9 @@ return {
 ## ⚙️ Configuration
 
 **quarry.nvim** comes with the following defaults:
+
+> [!NOTE]
+> You do not need to define this, the below only shows the default values.
 
 ```lua
 require("quarry").setup({
@@ -56,6 +63,16 @@ require("quarry").setup({
 
     -- Provide specific LSP here. A default server handler will be defined in any case.
     servers = {},
+
+    -- Provide LSP-specific setup functions or override the default.
+    setup = {
+        _ = function(name, opts) -- <- this is the default, BTW
+            local ok, lspconfig = pcall(require, "lspconfig")
+            if ok then
+                lspconfig[name].setup(opts)
+            end
+        end
+    }
 })
 ```
 
@@ -94,13 +111,11 @@ require("quarry").setup({
 
 ```
 
-### Configure fallback language server to replace the quarry.nvim default
+### Configure default LSP setup function to replace the quarry.nvim default
 
 ```lua
 require("quarry").setup({
-    servers = {
-        ---
-        -- the "_" is the key for the fallback server
+    setup = {
         _ = {
             ---
             -- Provide a fallback setup function. When defined, this will override the default
@@ -156,18 +171,15 @@ require("quarry").setup({
             },
 
             ---
-            -- Provide a custom setup function. When defined, this will override the default
-            -- provided by quarry.nvim for this LSP. The function takes 2 arguments: the name of
-            -- the lsp, ex. lua_ls, rust_analyzer, and the configuration defined in the `opts` table.
-            ---@type fun(name: string, opts: table<any any>)
-            setup = function(name, opts)
-                require("lspconfig")[name].setup(opts)
-            end,
+            -- Other LSP configurations will follow the same pattern, ex.
+            -- rust_analyzer = { ... }
         },
 
-        ---
-        -- Other LSP will follow the same pattern, ex.
-        -- rust_analyzer = { ... }
+        setup = {
+            lua_ls = function(name, opts)
+                -- implement lua_ls specific LSP setup function or fallback to default
+            end
+        },
     },
 })
 ```
@@ -262,7 +274,11 @@ return {
         servers = {
             lua_ls = {
                 filetypes = { "lua" },
-                ensure_installed = { "lua_ls", "stylua", "luacheck" },
+                ensure_installed = {
+                    -- "lua_ls" itself will be automatically installed, since it is the key of the LSP
+                    "stylua",
+                    "luacheck",
+                },
                 opts = {
                     settings = {
                         Lua = {
@@ -311,7 +327,7 @@ return {
                 },
 
                 ensure_installed = {
-                    "tsserver",
+                    -- "tsserver" itself will be automatically installed, since it is the key of the LSP
                     "prettier", -- prettierd as alternative
                     "eslint", -- eslint_d as alternative
                 },
