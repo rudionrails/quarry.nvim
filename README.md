@@ -36,7 +36,7 @@ return {
 
             -- the default server config assumes that you use lspconfig. If this is not the case,
             -- you can omit this and override with your own implementaiotn (see below examples).
-            -- quarry.nvim will gracefully hanle if lspconfig is not available.
+            -- quarry.nvim will gracefully handle if lspconfig is not available.
             "neovim/nvim-lspconfig"
         },
     }
@@ -45,8 +45,6 @@ return {
 ```
 
 ## ⚙️ Configuration
-
-**quarry.nvim** comes with the following defaults:
 
 > [!NOTE]
 > You do not need to define this, the below only shows the default values.
@@ -78,7 +76,11 @@ require("quarry").setup({
 
 ## 🚀 Additional Configuration Examples
 
-### Configure generic LSP `on_attach` and `capabilities` (see `:h lspconfig-configurations`)
+### Configure generic LSP options
+
+> [!TIP]
+> For explanations to `on_attach` and `capabilities` see `:h lspconfig-configurations`. Both
+> settings are totally optional.
 
 ```lua
 require("quarry").setup({
@@ -111,7 +113,7 @@ require("quarry").setup({
 
 ```
 
-### Configure default LSP setup function to replace the quarry.nvim default
+### Override the default LSP setup function with your own
 
 ```lua
 require("quarry").setup({
@@ -129,7 +131,7 @@ require("quarry").setup({
 })
 ```
 
-### Configure language servers (LSP)
+### Configure language servers
 
 ```lua
 require("quarry").setup({
@@ -177,7 +179,8 @@ require("quarry").setup({
 
         setup = {
             lua_ls = function(name, opts)
-                -- implement lua_ls specific LSP setup function or fallback to default
+                -- implement lua_ls specific LSP setup function. the default that comes
+                -- with quarry.nvim should suffice in most cases.
             end
         },
     },
@@ -200,7 +203,7 @@ When you use many LSP, your configuration table may become quite large. You can 
 -- ... require lazy.nvim as you usually would. Check out the documentation for detailed instructions ...
 require("lazy").setup({
     { import = "plugins" },
-    { import = "extras" }, -- <- this is the relevant line
+    { import = "extras" }, -- <- this is the relevant line, BTW
 }, {
     -- .. regular lazy.nvim configuration ...
 })
@@ -218,7 +221,7 @@ return {
         "williamboman/mason-lspconfig.nvim",
         "neovim/nvim-lspconfig",
 
-        -- not required by quarry.nvim
+        -- not required by quarry.nvim, just to show how to extend capabilities
         "hrsh7th/cmp-nvim-lsp",
     },
     opts = {
