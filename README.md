@@ -6,8 +6,11 @@
 
 ## ✨ Features
 
-- Passes `vim.lsp.protocol.make_client_capabilities()` as default capabilities to any LSP
+- Composable configuration that can be split for easier file management (best via lazy.nvim)
 - Configure `ensure_installed` to install all available tools in mason, via mason-lspconfig
+- Install LSP (and other mason tools) and attach lazily on selected `filetypes`
+- Passes `vim.lsp.protocol.make_client_capabilities()` as default capabilities to every LSP
+- Passes `on_attach` to every LSP
 
 ## ⚡️Requirements
 
@@ -91,63 +94,80 @@ require("quarry").setup({
 
 ```
 
+### Configure fallback language server to replace the quarry.nvim default
+
+```lua
+require("quarry").setup({
+    servers = {
+        ---
+        -- the "_" is the key for the fallback server
+        _ = {
+            ---
+            -- Provide a fallback setup function. When defined, this will override the default
+            -- provided by quarry.nvim.
+            ---@type fun(name: string, opts: table<any any>)
+            setup = function(name, opts)
+                require("lspconfig")[name].setup(opts)
+            end,
+        },
+    },
+})
+```
+
 ### Configure language servers (LSP)
 
 ```lua
----
--- quarry.nvim uses mason-lspconfig under the hood to setup LSP and other tools. The settings passed for
--- each server look similar but are slightly adjusted to allow for easier composition.
 require("quarry").setup({
     servers = {
         ---
         -- use the LSP name as a key (like you would for mason-lspconfig)
         lua_ls = {
 
-        ---
-        -- Tools are installed only when opening such filetypes (lazily), otherwise thy are installed
-        -- upon `require("quarry").setup()`. The `filetypes` key is optional and unrelated to the 
-        -- filetypes option in the lspconfig package.
-        ---@type string[]
-        filetypes = { "lua" },
+            ---
+            -- Tools are installed only when opening such filetypes (lazily), otherwise thy are installed
+            -- upon `require("quarry").setup()`. The `filetypes` key is optional and unrelated to the 
+            -- filetypes option in the lspconfig package.
+            ---@type string[]
+            filetypes = { "lua" },
 
-        ---
-        -- Provide the tools to install. This allows for all available mason tools, not just LSP.
-        -- You can omit `lua_ls` in the below example, as it will be installed automatically. It is
-        -- taken for any LSP from the server key of the table.
-        ---@type string[]
-        ensure_installed = { "lua_ls", "stylua", "luacheck" },
+            ---
+            -- Provide the tools to install. This allows for all available mason tools, not just LSP.
+            -- You can omit `lua_ls` in the below example, as it will be installed automatically. It is
+            -- taken for any LSP from the server key of the table.
+            ---@type string[]
+            ensure_installed = { "lua_ls", "stylua", "luacheck" },
 
-        ---
-        -- Pass the opts for the language server as you would with mason-lspconfig
-        ---@type table<any, any>
-        opts = {
-            settings = {
-                Lua = {
-                    completion = { callSnippet = "Replace" },
-                    doc = { privateName = { "^_" } },
-                    codeLens = { enable = true },
-                    hint = { enable = true },
-                    workspace = { checkThirdParty = false },
+            ---
+            -- Pass the opts for the language server as you would with mason-lspconfig
+            ---@type table<any, any>
+            opts = {
+                settings = {
+                    Lua = {
+                        completion = { callSnippet = "Replace" },
+                        doc = { privateName = { "^_" } },
+                        codeLens = { enable = true },
+                        hint = { enable = true },
+                        workspace = { checkThirdParty = false },
+                    },
+
+                    -- Do not send telemetry data containing a randomized but unique identifier
+                    telemetry = { enable = false },
                 },
-
-                -- Do not send telemetry data containing a randomized but unique identifier
-                telemetry = { enable = false },
             },
+
+            ---
+            -- Provide a custom setup function. When defined, this will override the default
+            -- provided by quarry.nvim for this LSP. The function takes 2 arguments: the name of
+            -- the lsp, ex. lua_ls, rust_analyzer, and the configuration defined in the `opts` table.
+            ---@type fun(name: string, opts: table<any any>)
+            setup = function(name, opts)
+                require("lspconfig")[name].setup(opts)
+            end,
         },
 
         ---
-        -- Provide a custom setup function. When defined, this will override the default
-        -- provided by quarry.nvim for this LSP. The function takes 2 arguments: the name of
-        -- the lsp, ex. lua_ls, rust_analyzer, and the configuration defined in the `opts` table.
-        ---@type fun(name: string, opts: table<any any>)
-        setup = function(name, opts)
-            require("lspconfig")[name].setup(opts)
-        end,
-    },
-
-    ---
-    -- Other LSP will follow the same pattern, ex.
-    -- rust_analyzer = { ... }
+        -- Other LSP will follow the same pattern, ex.
+        -- rust_analyzer = { ... }
     },
 })
 ```
