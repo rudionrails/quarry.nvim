@@ -51,20 +51,24 @@ function M.setup(opts)
 
 	local options = vim.tbl_deep_extend("force", {}, M._config, opts or {})
 	local capabilities = type(options.capabilities) == "function" and options.capabilities() or options.capabilities
+	local fallback = vim.tbl_deep_extend("force", {}, M._server, options.servers["_"] or {})
 
 	-- setup servers from `servers` option
 	mason_lspconfig.setup({
 		handlers = {
 			function(name)
 				local server = vim.tbl_deep_extend("force", {}, M._server, options.servers[name] or {})
-				local server_opts = vim.tbl_deep_extend(
-					"force",
-					{ capabilities = vim.deepcopy(capabilities), on_attach = options.on_attach },
-					server.opts or {}
-				)
+				local server_opts = {
+					capabilities = vim.deepcopy(capabilities),
+					on_attach = options.on_attach,
+				}
 
 				if type(server.setup) == "function" then
+					server_opts = vim.tbl_deep_extend("force", server_opts, server.opts or {})
 					server.setup(name, server_opts)
+				elseif type(fallback.setup) == "function" then
+					server_opts = vim.tbl_deep_extend("force", server_opts, fallback.opts or {})
+					fallback.setup(name, server_opts)
 				else
 					lspconfig[name].setup(server_opts)
 				end
