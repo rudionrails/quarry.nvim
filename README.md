@@ -115,7 +115,7 @@ require("lazy").setup({
 </details>
 
 <details>
-<summary>Setup **quarry.nvim** in `lua/plugins/lsp.lua`</summary>
+<summary>Setup <b>quarry.nvim</b> in <code>lua/plugins/lsp.lua</code></summary>
 
 ```lua
 -- file: lua/plugins/quarry.lua
@@ -178,7 +178,7 @@ return {
 </details>
 
 <details>
-<summary>Setup lua-language-server in `lua/extras/lua.lua`</summary>
+<summary>Setup lua-language-server in <code>lua/extras/lua.lua</code></summary>
 
 ```lua
 -- file: lua/extras/lua.lua
@@ -225,7 +225,7 @@ return {
 
 
 <details>
-<summary>Setup typescript-language-server in `lua/extras/typescript.lua`</summary>
+<summary>Setup typescript-language-server in <code>lua/extras/typescript.lua</code></summary>
 
 ```lua
 -- file: lua/extras/typescript.lua
