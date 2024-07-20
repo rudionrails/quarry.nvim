@@ -94,25 +94,9 @@ When you use many LSP, your configuration table may become quite large. You can 
 inside your Neovim configuration directory, you will have:
 
 - `lua/plugins/lsp.lua` as your base setup
-- `lua/extras/lua.lua` for [Lua LSP](https://github.com/LuaLS/lua-language-server) specific configuration
-- `lua/extras/typescript.lua` for [Typescript LSP](https://github.com/typescript-language-server/typescript-language-server) specific configuration
+- `lua/plugins/extras/lua.lua` for [Lua LSP](https://github.com/LuaLS/lua-language-server) specific configuration
+- `lua/plugins/extras/typescript.lua` for [Typescript LSP](https://github.com/typescript-language-server/typescript-language-server) specific configuration
 - ...extend with other LSP as you like
-
-<details>
-<summary>Setup lazy.nvim and provide additional extras spec</summary>
-
-```lua
--- file: lua/init.lua
-
--- ... require lazy.nvim as you usually would. Check out the documentation for detailed instructions ...
-require("lazy").setup({
-    { import = "plugins" },
-    { import = "extras" }, -- <- this is the relevant line, BTW
-}, {
-    -- .. regular lazy.nvim configuration ...
-})
-```
-</details>
 
 <details>
 <summary>Setup <b>quarry.nvim</b> in <code>lua/plugins/lsp.lua</code></summary>
@@ -129,6 +113,21 @@ return {
 
         -- not required by quarry.nvim, just to show how to extend capabilities
         "hrsh7th/cmp-nvim-lsp",
+
+        ---
+        -- This takes advantage of lazy.nvim loading mechanism and makes Lazy aware to
+        -- load modules from within /lua/plugins/extras/*
+        --
+        -- Alternatively, you can add this to lua/init.lua:
+        --  
+        --   -- ... require lazy.nvim as you usually would. Check out the documentation for detailed instructions ...
+        --   require("lazy").setup({
+        --       { import = "plugins" },
+        --       { import = "extras" }, -- <- this is the relevant line, BTW
+        --   }, {
+        --       -- .. regular lazy.nvim configuration ...
+        --   })
+        { import = "plugins.extras" },
     },
     opts = {
         ---
@@ -178,10 +177,10 @@ return {
 </details>
 
 <details>
-<summary>Setup lua-language-server in <code>lua/extras/lua.lua</code></summary>
+<summary>Setup lua-language-server in <code>lua/plugins/extras/lua.lua</code></summary>
 
 ```lua
--- file: lua/extras/lua.lua
+-- file: lua/plugins/extras/lua.lua
 return {
     "rudionrails/quarry.nvim",
     opts = {
@@ -225,10 +224,10 @@ return {
 
 
 <details>
-<summary>Setup typescript-language-server in <code>lua/extras/typescript.lua</code></summary>
+<summary>Setup typescript-language-server in <code>lua/plugins/extras/typescript.lua</code></summary>
 
 ```lua
--- file: lua/extras/typescript.lua
+-- file: lua/plugins/extras/typescript.lua
 return {
     "rudionrails/quarry.nvim",
     opts = {
@@ -274,7 +273,7 @@ return {
 
 ## Similar projects
 
-- [`astrolsp`](https://github.com/AstroNvim/astrolsp)
+- [`astrolsp`](https://github.com/AstroNvim/astrolsp) 
 - [`lsp-setup`](https://github.com/junnplus/lsp-setup.nvim)
 
 ## Development
