@@ -29,6 +29,8 @@ M._server = {
 
 ---@lass quarry.Config
 M._config = {
+	features = {},
+
 	---
 	-- Global capabilities that are passed to every LSP
 	---@type lsp.ClientCapabilities|fun():lsp.ClientCapabilities
@@ -38,7 +40,7 @@ M._config = {
 
 	---
 	-- Global on_attach that is passed to every LSP
-	---@type fun(client: lsp.Client, bufnr: integer)
+	---@type fun(client: vim.lsp.Client, bufnr: integer)
 	on_attach = nil,
 
 	---
@@ -77,6 +79,15 @@ function M.setup(opts)
 
 	local options = vim.tbl_deep_extend("force", {}, M._config, opts or {})
 	local capabilities = type(options.capabilities) == "function" and options.capabilities() or options.capabilities
+	local on_attach = function(client, bufnr)
+		if type(options.on_attach) == "function" then
+			options.on_attach(client, bufnr)
+		end
+
+		if type(options.features) == "table" and #options.features ~= 0 then
+			require("quarry.features").setup(client, bufnr, options.features)
+		end
+	end
 
 	-- setup servers from `servers` option
 	mason_lspconfig.setup({
@@ -86,7 +97,7 @@ function M.setup(opts)
 				local server = vim.tbl_deep_extend("force", {}, M._server, options.servers[name] or {})
 				local server_options = vim.tbl_deep_extend("force", {
 					capabilities = vim.deepcopy(capabilities),
-					on_attach = options.on_attach,
+					on_attach = on_attach,
 				}, server.opts or {})
 
 				if type(setup) == "function" then
@@ -95,6 +106,8 @@ function M.setup(opts)
 					local ok, lspconfig = pcall(require, "lspconfig")
 					if ok then
 						lspconfig[name].setup(server_options)
+					else
+						u.notify(string.format('No LSP setup() function defined for "%s"', name), vim.log.levels.WARN)
 					end
 				end
 			end,
