@@ -1,3 +1,6 @@
+local mason_lspconfig = require("mason-lspconfig")
+local mason_registry = require("mason-registry")
+
 local u = require("quarry.utils")
 
 local M = {}
@@ -32,9 +35,6 @@ end
 ---@private
 ---@param tools string[]
 function M._run(tools)
-	local mason_lspconfig = require("mason-lspconfig")
-	local mason_registry = require("mason-registry")
-
 	for _, tool in ipairs(tools) do
 		local name = mason_lspconfig.get_mappings().lspconfig_to_mason[tool] or tool
 		local p = mason_registry.get_package(name)
