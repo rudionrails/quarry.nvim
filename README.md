@@ -19,10 +19,10 @@ Having multiple LSP can easily bloat your single-file configuration. You still w
 
 ### What quarry.nvim will do for you
 
-- Composable LSP configuration that is split into multiple files (best with lazy.nvim)
-- Lazily install LSP the first time you open a relevant file to keep your Neovim startup blazingly fast
-- Install additional tools without fuzz, ex. DAP, linter, formatter (⚠️ configuration of those is still with you)
-- Configures minimal LSP capabilities and server setup, which can all be overwritten if needed
+- Composable LSP configuration
+- Lazy LSP installation only when required to keep your Neovim blazingly fast
+- Additional tool installation without fuzz, ex. DAP, linter, formatter (⚠️ configuration of those is still with you)
+- Configures minimal LSP capabilities and server setup
 
 ### What will quarry.nvim not do for you
 
@@ -139,6 +139,14 @@ return {
         { import = "plugins.extras" },
     },
     opts = {
+        ---
+        -- Define the LSP features
+        features = {
+            "textDocument/documentHighlight",
+            -- "textDocument/inlayHint",
+            -- "textDocument/codeLens",
+        },
+
         ---
         -- will be passed to every LSP. Alternatively, use `LspAttach` event.
         on_attach = function(client, bufnr)

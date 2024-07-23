@@ -1,6 +1,7 @@
 local mason_lspconfig = require("mason-lspconfig")
 local mason_registry = require("mason-registry")
 
+local features = require("quarry.features")
 local installer = require("quarry.installer")
 local u = require("quarry.utils")
 
@@ -84,8 +85,8 @@ function M.setup(opts)
 			options.on_attach(client, bufnr)
 		end
 
-		if type(options.features) == "table" and #options.features ~= 0 then
-			require("quarry.features").setup(client, bufnr, options.features)
+		if type(options.features) == "string" or type(options.features) == "table" and #options.features ~= 0 then
+			features.setup(client, bufnr, options.features)
 		end
 	end
 

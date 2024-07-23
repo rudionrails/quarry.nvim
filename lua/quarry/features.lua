@@ -1,5 +1,3 @@
-local u = require("quarry.utils")
-
 local M = {}
 
 ---
@@ -29,12 +27,9 @@ local M = {}
 --
 -- @type table<string, quarry.Feature>|string|boolean
 M._features = {
+	---
 	-- Highlight on current word
-	["textDocument/documentHighlight"] = function(client, bufnr)
-		if not client.supports_method("textDocument/documentHighlight") then
-			return
-		end
-
+	["textDocument/documentHighlight"] = function(_, bufnr)
 		local group = vim.api.nvim_create_augroup("quarry_textDocument/documentHighlight", { clear = false })
 
 		vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI" }, {
@@ -60,21 +55,15 @@ M._features = {
 		end
 	end,
 
-	-- enable inlay hints
-	["textDocument/inlayHint"] = function(client, bufnr)
-		if not client.supports_method("textDocument/inlayHint") then
-			return
-		end
-
+	---
+	-- Inlay hints
+	["textDocument/inlayHint"] = function(_, bufnr)
 		vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
 	end,
 
-	-- enable code lens
-	["textDocument/codeLens"] = function(client, bufnr)
-		if not client.supports_method("textDocument/codeLens") then
-			return
-		end
-
+	---
+	-- Code lens
+	["textDocument/codeLens"] = function(_, bufnr)
 		local group = vim.api.nvim_create_augroup("quarry_textDocument/codeLens", { clear = false })
 
 		vim.lsp.codelens.refresh()
@@ -92,6 +81,41 @@ M._features = {
 	end,
 }
 
+---@private
+M._presets = {
+	sensible = { "textDocument/documentHighlight", "textDocument/inlayHint" },
+}
+
+---@private
+function M._format(features)
+	if type(features) == "string" then
+		if features == "all" then
+			return M._format(M._features)
+		else
+			local _presets = {}
+			for _, feature in ipairs(M._presets[features] or {}) do
+				_presets[feature] = M._features[feature]
+			end
+
+			return M._format(_presets)
+		end
+	end
+
+	local _features = {}
+
+	for feature, config in pairs(features) do
+		if type(feature) == "number" and type(config) == "string" and M._features[config] then
+			table.insert(_features, { feature = config, cond = config, setup = M._features[config] })
+		elseif type(feature) == "string" and type(config) == "function" then
+			table.insert(_features, { feature = feature, cond = feature, setup = config })
+		elseif type(feature) == "string" and type(config) == "table" and type(config.setup) == "function" then
+			table.insert(_features, { feature = feature, cond = config.cond or feature, setup = config.setup })
+		end
+	end
+
+	return _features
+end
+
 ---
 -- Setup LSP client features for the provided buffer
 --
@@ -99,22 +123,20 @@ M._features = {
 ---@param bufnr number
 ---@param features table<string, fun()>
 function M.setup(client, bufnr, features)
+	local _features = M._format(features)
 	local _teardowns = {}
-	local _apply = function(fn)
-		local teardown = fn(client, bufnr)
 
-		if type(teardown) == "function" then
-			table.insert(_teardowns, teardown)
-		end
-	end
+	for _, config in ipairs(_features) do
+		if
+			type(config.cond) == "boolean" and config.cond
+			or type(config.cond) == "string" and client.supports_method(config.cond)
+			or type(config.cond) == "function" and config.cond(client, bufnr)
+		then
+			local teardown = config.setup(client, bufnr)
 
-	for feature, setup in pairs(features) do
-		if type(feature) == "string" then
-			_apply(setup)
-		elseif type(setup) == "string" and M._features[setup] then
-			_apply(M._features[setup])
-		else
-			u.notify(string.format('"%s" is not a valid type for features', setup), vim.log.levels.ERROR)
+			if type(teardown) == "function" then
+				table.insert(_teardowns, teardown)
+			end
 		end
 	end
 
