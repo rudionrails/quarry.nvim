@@ -140,7 +140,7 @@ return {
     },
     opts = {
         ---
-        -- Define the LSP features
+        -- Define the features to be enabled (if supported) when the LSP attaches
         features = {
             "textDocument/documentHighlight",
             -- "textDocument/inlayHint",
@@ -148,31 +148,39 @@ return {
         },
 
         ---
+        -- Define the keymaps to be set for the buffer when the LSP attaches. The syntax is similar to
+        -- Lazy nvim.
+        keys = {
+            { "[d", vim.diagnostic.goto_prev },
+            { "]d", vim.diagnostic.goto_next },
+            { "K",  vim.lsp.buf.hover, desc = "Show lsp hover" },
+            { "gD", vim.lsp.buf.declaration, desc = "[G]oto [D]eclaration" },
+            { "gs", vim.lsp.buf.signature_help, desc = "[G]oto [s]ignature" },
+            { "gd", vim.lsp.buf.definition, desc = "[G]oto [d]efinition" },
+            { "gr", vim.lsp.buf.references, desc = "[G]oto [r]eferences" },
+            { "gi", vim.lsp.buf.implementation, desc = "[G]oto [i]mplementation" },
+            { "gt", vim.lsp.buf.type_definition, desc = "Goto [t]ype definition" },
+
+            { "<leader>a", vim.lsp.buf.code_action, desc = "Code [a]ction" },
+            { "<leader>r", vim.lsp.buf.rename, desc = "[R]ename word under cursor within project" },
+
+            {
+                "<leader>h",
+                function(client, bufnr)
+                    vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled({ bufnr = bufnr }))
+                end,
+                desc = "Toggle inlay [h]int",
+            },
+
+            -- vim.api.nvim_command('inoremap <C-space> <C-x><C-o>')
+            { "<C-space>", "<C-x><C-o>", mode = "i", remap = false },
+        }
+
+        ---
         -- will be passed to every LSP. Alternatively, use `LspAttach` event.
         on_attach = function(client, bufnr)
             -- Enable completion triggered by <c-x><c-o>
             vim.bo[bufnr].omnifunc = "v:lua.vim.lsp.omnifunc"
-
-            -- helper function for keymaps on current buffer
-            local nmap = function(lhs, rhs, desc)
-                vim.keymap.set("n", lhs, rhs, { buffer = bufnr, desc = desc })
-            end
-
-            nmap("[d", vim.diagnostic.goto_prev)
-            nmap("]d", vim.diagnostic.goto_next)
-            nmap("K", vim.lsp.buf.hover, "Show lsp hover")
-            nmap("gD", vim.lsp.buf.declaration, "[G]oto [D]eclaration")
-            nmap("gs", vim.lsp.buf.signature_help, "[G]oto [s]ignature")
-            nmap("gd", vim.lsp.buf.definition, "[G]oto [d]efinition")
-            nmap("gr", vim.lsp.buf.references, "[G]oto [r]eferences")
-            nmap("gi", vim.lsp.buf.implementation, "[G]oto [i]mplementation")
-            nmap("gt", vim.lsp.buf.type_definition, "[G]oto [t]ype definition")
-
-            nmap("<leader>a", vim.lsp.buf.code_action, "Code [a]ction")
-            nmap("<leader>r", vim.lsp.buf.rename, "[R]ename word under cursor within project")
-            nmap("<leader>h", function()
-                vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())
-            end, "Toggle inlay [h]int")
         end,
 
         ---
