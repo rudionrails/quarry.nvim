@@ -1,7 +1,6 @@
 local mason_lspconfig = require("mason-lspconfig")
 local mason_registry = require("mason-registry")
 
-local features = require("quarry.features")
 local installer = require("quarry.installer")
 local u = require("quarry.utils")
 
@@ -30,7 +29,13 @@ M._server = {
 
 ---@lass quarry.Config
 M._config = {
+	---
+	-- Enable LSP features
 	features = {},
+
+	---
+	-- pass keymaps for
+	keys = {},
 
 	---
 	-- Global capabilities that are passed to every LSP
@@ -86,7 +91,11 @@ function M.setup(opts)
 		end
 
 		if type(options.features) == "string" or type(options.features) == "table" and #options.features ~= 0 then
-			features.setup(client, bufnr, options.features)
+			require("quarry.features").setup(client, bufnr, options.features)
+		end
+
+		if type(options.keys) == "table" and #options.keys ~= 0 then
+			require("quarry.keymaps").setup(client, bufnr, options.keys)
 		end
 	end
 
