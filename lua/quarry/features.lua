@@ -12,15 +12,19 @@ local M = {}
 -- Enable selected features with their default configuration
 --   quarry.setup({
 --     features = {
---       "textDocument/documentHighlight", -- uses the default function from quarry.nvim
+--       -- uses the default function from quarry.nvim
+--       "textDocument/documentHighlight",
+--
+--       -- pass a table with `cond` and `setup` function
 --       ["textDocument/inlayHint"] = {
 --         cond = "textDocument/inlayHint" -- this is used as default and taken from key
 --         setup = function(client, bufnr) -- only executes when `cond` is satisied
 --
 --         end,
 --       },
---       ["textDocument/codeLens"] = function(client, bufnr) -- no magic applied, all logic is with you
 --
+--        -- no magic applied, all logic is with you
+--       ["textDocument/codeLens"] = function(client, bufnr)
 --       end,
 --     }
 --   })
@@ -91,18 +95,17 @@ function M._format(features)
 	if type(features) == "string" then
 		if features == "all" then
 			return M._format(M._features)
-		else
-			local _presets = {}
-			for _, feature in ipairs(M._presets[features] or {}) do
-				_presets[feature] = M._features[feature]
-			end
-
-			return M._format(_presets)
 		end
+
+		local _presets = {}
+		for _, feature in ipairs(M._presets[features] or {}) do
+			_presets[feature] = M._features[feature]
+		end
+
+		return M._format(_presets)
 	end
 
 	local _features = {}
-
 	for feature, config in pairs(features) do
 		if type(feature) == "number" and type(config) == "string" and M._features[config] then
 			table.insert(_features, { feature = config, cond = config, setup = M._features[config] })

@@ -1,6 +1,8 @@
 local M = {}
 
---- Notify utility
+---
+-- Notify utility
+--
 ---@param msg string The message to print
 ---@param level? number One of: vim.log.levels.DEBUG [[INFO, WARN, ERROR]]
 function M.notify(msg, level)
