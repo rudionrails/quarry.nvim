@@ -47,7 +47,7 @@ M._config = {
 	---
 	-- Global on_attach that is passed to every LSP
 	---@type fun(client: vim.lsp.Client, bufnr: integer)
-	on_attach = nil,
+	on_attach = function(client, bufnr) end,
 
 	---
 	-- List of global tools to install
@@ -83,19 +83,19 @@ function M.setup(opts)
 		M._is_setup = true
 	end
 
-	local options = vim.tbl_deep_extend("force", {}, M._config, opts or {})
-	local capabilities = type(options.capabilities) == "function" and options.capabilities() or options.capabilities
-	local on_attach = function(client, bufnr)
-		if type(options.on_attach) == "function" then
-			options.on_attach(client, bufnr)
+	local _opts = vim.tbl_deep_extend("force", {}, M._config, opts or {})
+	local _capabilities = type(_opts.capabilities) == "function" and _opts.capabilities() or _opts.capabilities
+	local _on_attach = function(client, bufnr)
+		if type(_opts.features) == "string" or type(_opts.features) == "table" and #_opts.features ~= 0 then
+			require("quarry.features").setup(client, bufnr, _opts.features)
 		end
 
-		if type(options.features) == "string" or type(options.features) == "table" and #options.features ~= 0 then
-			require("quarry.features").setup(client, bufnr, options.features)
+		if type(_opts.keys) == "table" and #_opts.keys ~= 0 then
+			require("quarry.keymaps").setup(client, bufnr, _opts.keys)
 		end
 
-		if type(options.keys) == "table" and #options.keys ~= 0 then
-			require("quarry.keymaps").setup(client, bufnr, options.keys)
+		if type(_opts.on_attach) == "function" then
+			_opts.on_attach(client, bufnr)
 		end
 	end
 
@@ -103,11 +103,11 @@ function M.setup(opts)
 	mason_lspconfig.setup({
 		handlers = {
 			function(name)
-				local setup = options.setup[name] or options.setup["_"]
-				local server = vim.tbl_deep_extend("force", {}, M._server, options.servers[name] or {})
+				local setup = _opts.setup[name] or _opts.setup["_"]
+				local server = vim.tbl_deep_extend("force", {}, M._server, _opts.servers[name] or {})
 				local server_options = vim.tbl_deep_extend("force", {
-					capabilities = vim.deepcopy(capabilities),
-					on_attach = on_attach,
+					capabilities = vim.deepcopy(_capabilities),
+					on_attach = _on_attach,
 				}, server.opts or {})
 
 				if type(setup) == "function" then
@@ -127,9 +127,9 @@ function M.setup(opts)
 	-- install tools from `ensure_installed` option
 	mason_registry:on("package:install:success", installer.on_success)
 	mason_registry:on("package:install:failed", installer.on_failed)
-	installer.run(options.ensure_installed)
+	installer.run(_opts.ensure_installed)
 
-	for lsp, server in pairs(options.servers) do
+	for lsp, server in pairs(_opts.servers) do
 		server = vim.tbl_deep_extend("force", {}, M._server, server or {})
 		table.insert(server.ensure_installed, lsp)
 
