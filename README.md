@@ -67,20 +67,63 @@ return {
 
 ```lua
 require("quarry").setup({
-    -- capabilities can also be defined as Lua table, ex. `capabilities = {}`
+    ---
+    -- Define the features to be enabled (if supported) when the LSP attaches
+    --
+    -- Possible values are:
+    --   "textDocument/documentHighlight",
+    --   "textDocument/inlayHint",
+    --   "textDocument/codeLens",
+    features = {},
+
+    ---
+    -- Define the keymaps to be set for the buffer when the LSP attaches. The
+    -- syntax is similar to Lazy nvim.
+    -- 
+    -- Examples:
+    --   { "[d", vim.diagnostic.goto_prev },
+    --   { "]d", vim.diagnostic.goto_next },
+    --   { "K",  vim.lsp.buf.hover, desc = "Show lsp hover" },
+    keys = {}
+
+    ---
+    -- Will be passed when the LSP attaches. Alternatively, use `LspAttach` event.
+    -- You can manually manage LSP features or keymaps in here as well.
+    on_attach = function(client, bufnr) end,
+
+    ---
+    -- will be passed to every LSP. Can also be defined as Lua table, ex. `capabilities = {}`
     capabilities = function()
         return vim.tbl_deep_extend("force", {}, vim.lsp.protocol.make_client_capabilities())
     end,
 
+    ---
     -- Provide globally required mason tools; will be installed upon `require("quarry").setup()`
     ensure_installed = {},
 
-    -- Provide specific LSP here. A default server handler will be defined in any case.
+    ---
+    -- Provide specific LSP configuration here. Every config can have the following shape:
+    -- 	
+    -- servers = {
+    --   lua_ls = {
+	--     -- Specify the filetypes when to install the tools, ex. filetypes = { "lua" }
+	--     ---@type string[]
+	--     filetypes = {},
+	--     -- List of tools to install for the server, ex. ensure_installed = { "luacheck", "stylua" }
+	--     ---@type string[]
+	--     ensure_installed = {},
+	--     -- The LSP-specific options, ex. opts = { settings = { telemetry = { enable = false } } }
+	--     ---@type table<any, any>
+	--     opts = {},
+    --   }
+    -- }
     servers = {},
 
-    -- Provide LSP-specific setup functions or override the default.
+    ---
+    -- Provide LSP-specific handler functions or override the default. A setup handler with `_`
+    -- as the key will be used as default if no LSP-specific one is defined.
     setup = {
-        _ = function(name, opts) -- <- this is the default, BTW
+        _ = function(name, opts)
             local ok, lspconfig = pcall(require, "lspconfig")
             if ok then
                 lspconfig[name].setup(opts)
@@ -139,17 +182,12 @@ return {
         { import = "plugins.extras" },
     },
     opts = {
-        ---
-        -- Define the features to be enabled (if supported) when the LSP attaches
         features = {
             "textDocument/documentHighlight",
             "textDocument/inlayHint",
             -- "textDocument/codeLens",
         },
 
-        ---
-        -- Define the keymaps to be set for the buffer when the LSP attaches. The syntax is similar to
-        -- Lazy nvim.
         keys = {
             { "[d", vim.diagnostic.goto_prev },
             { "]d", vim.diagnostic.goto_next },
@@ -175,15 +213,11 @@ return {
             { "<C-space>", "<C-x><C-o>", mode = "i", remap = false },
         }
 
-        ---
-        -- will be passed to every LSP. Alternatively, use `LspAttach` event.
         on_attach = function(client, bufnr)
             -- Enable completion triggered by <c-x><c-o>
             vim.bo[bufnr].omnifunc = "v:lua.vim.lsp.omnifunc"
         end,
 
-        ---
-        -- will be passed to every LSP.
         capabilities = function()
             local cmp_nvim_lsp = require("hrsh7th/cmp-nvim-lsp")
 
