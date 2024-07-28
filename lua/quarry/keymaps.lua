@@ -21,32 +21,25 @@ M._allowed_options = { "desc", "noremap", "remap", "expr", "nowait", "silent" }
 --
 ---@param client vim.lsp.Client
 ---@param bufnr number
----@param keys quarry.Keymap[]
-function M.setup(client, bufnr, keys)
-	-- Applies keymap to current buffer
-	local _map = function(key)
-		local mode = key.mode or "n"
-		local lhs = key[1]
-		local rhs = key[2]
+---@param keymaps quarry.Keymap[]
+function M.setup(client, bufnr, keymaps)
+	local _apply = function(keymap)
+		local mode = keymap.mode or "n"
+		local lhs = keymap[1]
+		local rhs = keymap[2]
 		local opts = { buffer = bufnr }
 
-		if type(key[2]) == "function" then
-			rhs = function()
-				key[2](client, bufnr)
-			end
-		end
-
 		for _, k in ipairs(M._allowed_options) do
-			if key[k] ~= nil then
-				opts[k] = key[k]
+			if keymap[k] ~= nil then
+				opts[k] = keymap[k]
 			end
 		end
 
 		vim.keymap.set(mode, lhs, rhs, opts)
 	end
 
-	for _, key in ipairs(keys) do
-		_map(key)
+	for _, keymap in ipairs(keymaps) do
+		_apply(keymap)
 	end
 end
 

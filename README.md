@@ -143,7 +143,7 @@ return {
         -- Define the features to be enabled (if supported) when the LSP attaches
         features = {
             "textDocument/documentHighlight",
-            -- "textDocument/inlayHint",
+            "textDocument/inlayHint",
             -- "textDocument/codeLens",
         },
 
@@ -163,11 +163,10 @@ return {
 
             { "<leader>a", vim.lsp.buf.code_action, desc = "Code [a]ction" },
             { "<leader>r", vim.lsp.buf.rename, desc = "[R]ename word under cursor within project" },
-
             {
                 "<leader>h",
-                function(client, bufnr)
-                    vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled({ bufnr = bufnr }))
+                function()
+                    vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())
                 end,
                 desc = "Toggle inlay [h]int",
             },
