@@ -1,6 +1,6 @@
-local M = {}
+local ALLOWED_OPTIONS = { "desc", "noremap", "remap", "expr", "nowait", "silent" }
 
-M._allowed_options = { "desc", "noremap", "remap", "expr", "nowait", "silent" }
+local M = {}
 
 ---
 -- Pretty much the same signature as [Lazy](https://lazy.folke.io/) key mappings
@@ -16,30 +16,27 @@ M._allowed_options = { "desc", "noremap", "remap", "expr", "nowait", "silent" }
 ---@field nowait? boolean
 ---@field silent? boolean
 
----
 -- Setup LSP client features for the provided buffer
 --
 ---@param client vim.lsp.Client
 ---@param bufnr number
----@param keymaps quarry.Keymap[]
-function M.setup(client, bufnr, keymaps)
-	local _apply = function(keymap)
-		local mode = keymap.mode or "n"
-		local lhs = keymap[1]
-		local rhs = keymap[2]
+---@param keymap table<string, quarry.Keymap>
+function M.setup(_, bufnr, keymap)
+	for lhs, config in pairs(keymap) do
+		-- local lhs = key[1]
+		-- local rhs = key[2]
+		local rhs = config[1]
+		local mode = config.mode or "n"
 		local opts = { buffer = bufnr }
 
-		for _, k in ipairs(M._allowed_options) do
-			if keymap[k] ~= nil then
-				opts[k] = keymap[k]
+		for _, k in ipairs(ALLOWED_OPTIONS) do
+			if config[k] ~= nil then
+				opts[k] = config[k]
 			end
 		end
 
+		print("key", lhs)
 		vim.keymap.set(mode, lhs, rhs, opts)
-	end
-
-	for _, keymap in ipairs(keymaps) do
-		_apply(keymap)
 	end
 end
 

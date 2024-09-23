@@ -6,11 +6,10 @@ local u = require("quarry.utils")
 
 local M = {}
 
----@private
-M._is_setup = false
+local _is_setup = false
 
 ---@class quarry.Server
-M._server = {
+local _server = {
 	---
 	-- Specify the filetypes when to install the tools
 	---@type string[]
@@ -27,32 +26,31 @@ M._server = {
 	opts = {},
 }
 
----@lass quarry.Config
-M._config = {
+---@class quarry.Config
+M.defaults = {
 	---
-	-- Enable LSP features
+	-- List of global tools to install
+	---@type string[]
+	ensure_installed = {},
+
+	---
+	-- Enable LSP features for attached client
 	features = {},
 
 	---
-	-- pass keymaps for
+	-- Pass keymaps for attached client
+	---@type table<string, quarry.Keymap>
 	keys = {},
 
 	---
 	-- Global capabilities that are passed to every LSP
 	---@type lsp.ClientCapabilities|fun():lsp.ClientCapabilities
-	capabilities = function()
-		return vim.tbl_deep_extend("force", {}, vim.lsp.protocol.make_client_capabilities())
-	end,
+	capabilities = vim.lsp.protocol.make_client_capabilities,
 
 	---
 	-- Global on_attach that is passed to every LSP
 	---@type fun(client: vim.lsp.Client, bufnr: integer)
 	on_attach = function(client, bufnr) end,
-
-	---
-	-- List of global tools to install
-	---@type string[]
-	ensure_installed = {},
 
 	---
 	-- Configure every LSP individually. Ideal to separate into multiple files.
@@ -76,38 +74,32 @@ M._config = {
 --- Setup the plugin
 ---@param opts? quarry.Config
 function M.setup(opts)
-	if M._is_setup then
+	if _is_setup then
 		u.notify("setup() already called", vim.log.levels.WARN)
 		return
 	else
-		M._is_setup = true
+		_is_setup = true
 	end
 
-	local _opts = vim.tbl_deep_extend("force", {}, M._config, opts or {})
-	local _capabilities = type(_opts.capabilities) == "function" and _opts.capabilities() or _opts.capabilities
-	local _on_attach = function(client, bufnr)
-		if type(_opts.features) == "string" or type(_opts.features) == "table" and #_opts.features ~= 0 then
-			require("quarry.features").setup(client, bufnr, _opts.features)
-		end
+	local config = vim.tbl_deep_extend("force", {}, M.defaults, opts or {})
 
-		if type(_opts.keys) == "table" and #_opts.keys ~= 0 then
-			require("quarry.keymaps").setup(client, bufnr, _opts.keys)
-		end
+	local capabilities = type(config.capabilities) == "function" and config.capabilities() or config.capabilities
+	local on_attach = function(client, bufnr)
+		require("quarry.features").setup(client, bufnr, config.features)
+		require("quarry.keymaps").setup(client, bufnr, config.keys)
 
-		if type(_opts.on_attach) == "function" then
-			_opts.on_attach(client, bufnr)
-		end
+		config.on_attach(client, bufnr)
 	end
 
 	-- setup servers from `servers` option
 	mason_lspconfig.setup({
 		handlers = {
 			function(name)
-				local setup = _opts.setup[name] or _opts.setup["_"]
-				local server = vim.tbl_deep_extend("force", {}, M._server, _opts.servers[name] or {})
+				local setup = config.setup[name] or config.setup["_"]
+				local server = vim.tbl_deep_extend("force", {}, _server, config.servers[name] or {})
 				local server_options = vim.tbl_deep_extend("force", {
-					capabilities = vim.deepcopy(_capabilities),
-					on_attach = _on_attach,
+					capabilities = capabilities,
+					on_attach = on_attach,
 				}, server.opts or {})
 
 				if type(setup) == "function" then
@@ -127,10 +119,10 @@ function M.setup(opts)
 	-- install tools from `ensure_installed` option
 	mason_registry:on("package:install:success", installer.on_success)
 	mason_registry:on("package:install:failed", installer.on_failed)
-	installer.run(_opts.ensure_installed)
+	installer.run(config.ensure_installed)
 
-	for lsp, server in pairs(_opts.servers) do
-		server = vim.tbl_deep_extend("force", {}, M._server, server or {})
+	for lsp, server in pairs(config.servers) do
+		server = vim.tbl_deep_extend("force", {}, _server, server or {})
 		table.insert(server.ensure_installed, lsp)
 
 		installer.run(server.ensure_installed, server.filetypes)

@@ -56,7 +56,7 @@ end
 -- Install the provided tools via mason, mason-lspconfig
 --
 ---@param tools string[]
----@param filetypes string[]
+---@param filetypes? string[]
 function M.run(tools, filetypes)
 	if #tools == 0 then
 		return
