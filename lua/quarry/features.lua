@@ -3,12 +3,6 @@ local M = {}
 ---
 -- Features are what the LSP client is able to support via `client.supports_method()`
 --
--- Enable all features (default)
---   quarry.setup({ features = true })
---
--- Disable all features
---   quarry.setup({ features = false })
---
 -- Enable selected features with their default configuration
 --   quarry.setup({
 --     features = {
@@ -29,7 +23,7 @@ local M = {}
 --     }
 --   })
 --
--- @type table<string, quarry.Feature>|string|boolean
+-- @type table<string, quarry.Feature>|string
 M._features = {
 	---
 	-- Highlight on current word
@@ -86,26 +80,9 @@ M._features = {
 }
 
 ---@private
-M._presets = {
-	sensible = { "textDocument/documentHighlight", "textDocument/inlayHint" },
-}
-
----@private
 function M._format(features)
-	if type(features) == "string" then
-		if features == "all" then
-			return M._format(M._features)
-		end
-
-		local _presets = {}
-		for _, feature in ipairs(M._presets[features] or {}) do
-			_presets[feature] = M._features[feature]
-		end
-
-		return M._format(_presets)
-	end
-
 	local _features = {}
+
 	for feature, config in pairs(features) do
 		if type(feature) == "number" and type(config) == "string" and M._features[config] then
 			table.insert(_features, { feature = config, cond = config, setup = M._features[config] })
