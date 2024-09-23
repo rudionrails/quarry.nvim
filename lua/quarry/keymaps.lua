@@ -35,7 +35,6 @@ function M.setup(_, bufnr, keymap)
 			end
 		end
 
-		print("key", lhs)
 		vim.keymap.set(mode, lhs, rhs, opts)
 	end
 end
