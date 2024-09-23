@@ -37,9 +37,13 @@ end
 function M._run(tools)
 	for _, tool in ipairs(tools) do
 		local name = mason_lspconfig.get_mappings().lspconfig_to_mason[tool] or tool
-		local p = mason_registry.get_package(name)
+		local has_package, p = pcall(mason_registry.get_package, name)
 
-		if not p:is_installed() then
+		if not has_package then
+			u.notify(string.format('"%s" not found in Mason registry.', name), vim.log.levels.WARN)
+		end
+
+		if has_package and not p:is_installed() then
 			M._tools_installed[p.name] = true
 
 			-- notify(
