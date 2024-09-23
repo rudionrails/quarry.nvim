@@ -81,9 +81,9 @@ require("quarry").setup({
     -- syntax is similar to Lazy nvim.
     -- 
     -- Examples:
-    --   { "[d", vim.diagnostic.goto_prev },
-    --   { "]d", vim.diagnostic.goto_next },
-    --   { "K",  vim.lsp.buf.hover, desc = "Show lsp hover" },
+    --   ["[d"] = { vim.diagnostic.goto_prev },
+    --   ["]d"] = { vim.diagnostic.goto_next },
+    --   ["K"] = { vim.lsp.buf.hover, desc = "Show lsp hover" },
     keys = {}
 
     ---
@@ -189,20 +189,19 @@ return {
         },
 
         keys = {
-            { "[d", vim.diagnostic.goto_prev },
-            { "]d", vim.diagnostic.goto_next },
-            { "K",  vim.lsp.buf.hover, desc = "Show lsp hover" },
-            { "gD", vim.lsp.buf.declaration, desc = "[G]oto [D]eclaration" },
-            { "gs", vim.lsp.buf.signature_help, desc = "[G]oto [s]ignature" },
-            { "gd", vim.lsp.buf.definition, desc = "[G]oto [d]efinition" },
-            { "gr", vim.lsp.buf.references, desc = "[G]oto [r]eferences" },
-            { "gi", vim.lsp.buf.implementation, desc = "[G]oto [i]mplementation" },
-            { "gt", vim.lsp.buf.type_definition, desc = "Goto [t]ype definition" },
+            ["[d"] = { vim.diagnostic.goto_prev },
+            ["]d"] = { vim.diagnostic.goto_next },
+            ["K"]  = { vim.lsp.buf.hover, desc = "Show lsp hover" },
+            ["gD"] = { vim.lsp.buf.declaration, desc = "[G]oto [D]eclaration" },
+            ["gs"] = { vim.lsp.buf.signature_help, desc = "[G]oto [s]ignature" },
+            ["gd"] = { vim.lsp.buf.definition, desc = "[G]oto [d]efinition" },
+            ["gr"] = { vim.lsp.buf.references, desc = "[G]oto [r]eferences" },
+            ["gi"] = { vim.lsp.buf.implementation, desc = "[G]oto [i]mplementation" },
+            ["gt"] = { vim.lsp.buf.type_definition, desc = "Goto [t]ype definition" },
 
-            { "<leader>a", vim.lsp.buf.code_action, desc = "Code [a]ction" },
-            { "<leader>r", vim.lsp.buf.rename, desc = "[R]ename word under cursor within project" },
-            {
-                "<leader>h",
+            ["<leader>a"] = { vim.lsp.buf.code_action, desc = "Code [a]ction" },
+            ["<leader>r"] = { vim.lsp.buf.rename, desc = "[R]ename word under cursor within project" },
+            ["<leader>h"] = {
                 function()
                     vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())
                 end,
@@ -210,7 +209,7 @@ return {
             },
 
             -- vim.api.nvim_command('inoremap <C-space> <C-x><C-o>')
-            { "<C-space>", "<C-x><C-o>", mode = "i", remap = false },
+            ["<C-space>"] = { "<C-x><C-o>", mode = "i", remap = false },
         }
 
         on_attach = function(client, bufnr)
