@@ -21,9 +21,9 @@ local _server = {
 	ensure_installed = {},
 
 	---
-	-- The LSP-specific options
+	-- The LSP-specific configuration
 	---@type table<any, any>
-	opts = {},
+	config = {},
 }
 
 ---@class quarry.Config
@@ -64,6 +64,7 @@ M.defaults = {
 	setup = {
 		_ = function(name, opts)
 			local ok, lspconfig = pcall(require, "lspconfig")
+
 			if ok then
 				lspconfig[name].setup(opts)
 			end
@@ -82,7 +83,6 @@ function M.setup(opts)
 	end
 
 	local config = vim.tbl_deep_extend("force", {}, M.defaults, opts or {})
-
 	local capabilities = type(config.capabilities) == "function" and config.capabilities() or config.capabilities
 	local on_attach = function(client, bufnr)
 		require("quarry.features").setup(client, bufnr, config.features)
@@ -97,21 +97,23 @@ function M.setup(opts)
 			function(name)
 				local setup = config.setup[name] or config.setup["_"]
 				local server = vim.tbl_deep_extend("force", {}, _server, config.servers[name] or {})
-				local server_options = vim.tbl_deep_extend("force", {
+
+				if type(server.opts) == "table" then
+					u.notify(
+						table.concat({
+							string.format("DEPRECATION for your %s configuration:", name),
+							"- `opts` has been renamed, use `config` instead.",
+						}, "\n"),
+						vim.log.levels.WARN
+					)
+				end
+
+				local server_config = vim.tbl_deep_extend("force", {
 					capabilities = capabilities,
 					on_attach = on_attach,
-				}, server.opts or {})
+				}, server.config or server.opts or {})
 
-				if type(setup) == "function" then
-					setup(name, server_options)
-				else
-					local ok, lspconfig = pcall(require, "lspconfig")
-					if ok then
-						lspconfig[name].setup(server_options)
-					else
-						u.notify(string.format('No LSP setup() function defined for "%s"', name), vim.log.levels.WARN)
-					end
-				end
+				setup(name, server_config)
 			end,
 		},
 	})
