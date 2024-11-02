@@ -36,7 +36,7 @@ Having multiple LSP can easily bloat your single-file configuration. You still w
 - [`Neovim`](https://neovim.io/) >= 0.10.0
 - [`williamboman/mason.nvim`](https://github.com/williamboman/mason.nvim)
 - [`williamboman/mason-lspconfig.nvim`](https://github.com/williamboman/mason-lspconfig.nvim)
-- [`neovim/nvim-lspconfig`](https://github.com/neovim/nvim-lspconfig)
+- [`neovim/nvim-lspconfig`](https://github.com/neovim/nvim-lspconfig) >= 1.0.0
 
 ## 📦 Installation
 
@@ -99,7 +99,7 @@ require("quarry").setup({
 
     ---
     -- Provide globally required mason tools; will be installed upon `require("quarry").setup()`
-    ensure_installed = {},
+    tools = {},
 
     ---
     -- Provide specific LSP configuration here. Every config can have the following shape:
@@ -109,12 +109,12 @@ require("quarry").setup({
 	--     -- Specify the filetypes when to install the tools, ex. filetypes = { "lua" }
 	--     ---@type string[]
 	--     filetypes = {},
-	--     -- List of tools to install for the server, ex. ensure_installed = { "luacheck", "stylua" }
+	--     -- List of tools to install for the server, ex. tools = { "luacheck", "stylua" }
 	--     ---@type string[]
-	--     ensure_installed = {},
-	--     -- The LSP-specific options, ex. opts = { settings = { telemetry = { enable = false } } }
+	--     tools = {},
+	--     -- The LSP-specific options, ex. config = { settings = { telemetry = { enable = false } } }
 	--     ---@type table<any, any>
-	--     opts = {},
+	--     config = {},
     --   }
     -- }
     servers = {},
@@ -181,7 +181,7 @@ return {
         --   })
         { import = "plugins.extras" },
     },
-    opts = {
+    config = {
         features = {
             "textDocument/documentHighlight",
             "textDocument/inlayHint",
@@ -240,16 +240,16 @@ return {
 -- file: lua/plugins/extras/lua.lua
 return {
     "rudionrails/quarry.nvim",
-    opts = {
+    config = {
         servers = {
             lua_ls = {
                 filetypes = { "lua" },
-                ensure_installed = {
+                tools = {
                     -- "lua_ls" itself will be automatically installed, since it is the key of the LSP
                     "stylua",
                     "luacheck",
                 },
-                opts = {
+                config = {
                     settings = {
                         Lua = {
                             completion = { callSnippet = "Replace" },
@@ -287,7 +287,7 @@ return {
 -- file: lua/plugins/extras/typescript.lua
 return {
     "rudionrails/quarry.nvim",
-    opts = {
+    config = {
         servers = {
             tsserver = {
                 filetypes = {
@@ -299,13 +299,13 @@ return {
                     "typescript.tsx",
                 },
 
-                ensure_installed = {
+                tools = {
                     -- "tsserver" itself will be automatically installed, since it is the key of the LSP
                     "prettier", -- prettierd as alternative
                     "eslint", -- eslint_d as alternative
                 },
 
-                opts = {
+                config = {
                     completions = { completeFunctionCalls = true },
                     init_options = {
                         preferences = {

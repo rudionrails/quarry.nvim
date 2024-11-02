@@ -1,5 +1,4 @@
 local mason_lspconfig = require("mason-lspconfig")
-local mason_registry = require("mason-registry")
 
 local installer = require("quarry.installer")
 local u = require("quarry.utils")
@@ -8,30 +7,12 @@ local M = {}
 
 local _is_setup = false
 
----@class quarry.Server
-local _server = {
-	---
-	-- Specify the filetypes when to install the tools
-	---@type string[]
-	filetypes = {},
-
-	---
-	-- List of tools to install for the server
-	---@type string[]
-	ensure_installed = {},
-
-	---
-	-- The LSP-specific configuration
-	---@type table<any, any>
-	config = {},
-}
-
 ---@class quarry.Config
 M.defaults = {
 	---
 	-- List of global tools to install
 	---@type string[]
-	ensure_installed = {},
+	tools = {},
 
 	---
 	-- Enable LSP features for attached client
@@ -96,8 +77,9 @@ function M.setup(opts)
 		handlers = {
 			function(name)
 				local setup = config.setup[name] or config.setup["_"]
-				local server = vim.tbl_deep_extend("force", {}, _server, config.servers[name] or {})
+				local server = vim.tbl_deep_extend("force", {}, u._server_defaults, config.servers[name] or {})
 
+				--  TODO: remove this for next major release
 				if type(server.opts) == "table" then
 					u.notify(
 						table.concat({
@@ -106,29 +88,22 @@ function M.setup(opts)
 						}, "\n"),
 						vim.log.levels.WARN
 					)
+
+					server.config = vim.tbl_deep_extend("force", server.config, server.opts)
 				end
 
 				local server_config = vim.tbl_deep_extend("force", {
 					capabilities = capabilities,
 					on_attach = on_attach,
-				}, server.config or server.opts or {})
+				}, server.config or {})
 
 				setup(name, server_config)
 			end,
 		},
 	})
 
-	-- install tools from `ensure_installed` option
-	mason_registry:on("package:install:success", installer.on_success)
-	mason_registry:on("package:install:failed", installer.on_failed)
-	installer.run(config.ensure_installed)
-
-	for lsp, server in pairs(config.servers) do
-		server = vim.tbl_deep_extend("force", {}, _server, server or {})
-		table.insert(server.ensure_installed, lsp)
-
-		installer.run(server.ensure_installed, server.filetypes)
-	end
+	-- install tools
+	installer.setup(config)
 end
 
 return M
