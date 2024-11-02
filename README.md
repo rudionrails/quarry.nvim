@@ -106,15 +106,17 @@ require("quarry").setup({
     -- 	
     -- servers = {
     --   lua_ls = {
-	--     -- Specify the filetypes when to install the tools, ex. filetypes = { "lua" }
+	--     -- Specify the filetypes when to install the tools
 	--     ---@type string[]
-	--     filetypes = {},
-	--     -- List of tools to install for the server, ex. tools = { "luacheck", "stylua" }
+	--     filetypes = { "lua" }, -- optional
+	--     -- List of tools to install for the server
 	--     ---@type string[]
-	--     tools = {},
-	--     -- The LSP-specific options, ex. config = { settings = { telemetry = { enable = false } } }
+	--     tools = { "lua_ls", "stylua", "luacheck" }, -- LSP itself needs to be specified
+	--     -- The LSP-specific options
 	--     ---@type table<any, any>
-	--     config = {},
+	--     config = {
+    --       settings = { telemetry = { enable = false } } ,
+    --     },
     --   }
     -- }
     servers = {},
@@ -243,12 +245,17 @@ return {
     config = {
         servers = {
             lua_ls = {
-                filetypes = { "lua" },
                 tools = {
-                    -- "lua_ls" itself will be automatically installed, since it is the key of the LSP
+                    "lua_ls",
                     "stylua",
                     "luacheck",
+
+                     -- only install when opening a file associated with lua_ls
+                     -- this can be set as `filetypes` or will be automatically
+                     -- taken from lspconfig
+                    lazy = true,
                 },
+
                 config = {
                     settings = {
                         Lua = {
@@ -289,27 +296,21 @@ return {
     "rudionrails/quarry.nvim",
     config = {
         servers = {
-            tsserver = {
-                filetypes = {
-                    "javascript",
-                    "javascriptreact",
-                    "javascript.jsx",
-                    "typescript",
-                    "typescriptreact",
-                    "typescript.tsx",
-                },
-
+            ts_ls = {
                 tools = {
-                    -- "tsserver" itself will be automatically installed, since it is the key of the LSP
+                    "ts_ls",
                     "prettier", -- prettierd as alternative
                     "eslint", -- eslint_d as alternative
+
+                    -- only install when file associated with 'ts_ls' is opened
+                    lazy = true,
                 },
 
                 config = {
                     completions = { completeFunctionCalls = true },
                     init_options = {
                         preferences = {
-                            includeInlayParameterNameHints = "all", -- 'none' | 'literals' | 'all';
+                            includeInlayParameterNameHints = "all",
                             includeInlayParameterNameHintsWhenArgumentMatchesName = false,
                             includeInlayFunctionParameterTypeHints = true,
                             includeInlayVariableTypeHints = true,

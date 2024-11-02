@@ -83,8 +83,9 @@ function M.setup(opts)
 				if type(server.opts) == "table" then
 					u.notify(
 						table.concat({
-							string.format("DEPRECATION for your %s configuration:", name),
-							"- `opts` has been renamed, use `config` instead.",
+							string.format("DEPRECATION for your '%s' configuration:", name),
+							"  - `opts` has been renamed, use `config` instead.",
+							"",
 						}, "\n"),
 						vim.log.levels.WARN
 					)

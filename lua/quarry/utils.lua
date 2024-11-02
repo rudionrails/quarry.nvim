@@ -34,4 +34,12 @@ function M.notify(msg, level)
 	vim.notify(string.format("[quarry.nvim] %s", msg), level or vim.log.levels.INFO)
 end
 
+---
+-- Filter table by numeric keys only
+function M.tbl_filter_numeric_keys(tbl)
+	return vim.tbl_filter(function(v)
+		return type(v) == "string"
+	end, tbl)
+end
+
 return M

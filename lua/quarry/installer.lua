@@ -81,7 +81,12 @@ function M.setup(config)
 		u.notify(
 			table.concat({
 				"DEPRECATION:",
-				"- `ensure_installed` has been renamed, use `tools` instead.",
+				"  - `ensure_installed` has been renamed, use `tools` instead.",
+				"",
+				"  BEFORE: `ensure_installed = { 'stylua' }`",
+				"  AFTER: `tools = { 'stylua' }`",
+				"",
+				"  For now, the list was merged into tools, but this will not be the case for future quarry.nvim releases.",
 			}, "\n"),
 			vim.log.levels.WARN
 		)
@@ -89,41 +94,70 @@ function M.setup(config)
 		vim.list_extend(tools, config.ensure_installed)
 	end
 
-	-- install now
+	-- install general defined tools now
 	if #tools > 0 then
-		u.notify("Installing global tools")
 		_install(tools)
 	end
 
-	-- configure servers individually
+	-- install tools per defined server
 	for name, _server in pairs(config.servers) do
 		local server = vim.tbl_deep_extend("force", {}, u._server_defaults, _server)
-		local server_filetypes = #server.filetypes > 0 and server / filetypes or _filetypes_for(name)
-		local server_tools = vim.list_extend({ name }, server.tools)
+		local server_filetypes = #server.filetypes > 0 and server.filetypes or _filetypes_for(name)
+		local server_tools = u.tbl_filter_numeric_keys(server.tools)
 
 		--  TODO: remove this for next major release
 		if type(server.ensure_installed) == "table" then
 			u.notify(
 				table.concat({
-					string.format("DEPRECATION for your %s configuration:", name),
-					"- `ensure_installed` has been renamed, use `tools` instead.",
+					string.format("DEPRECATION for your root configuration:", name),
+					"  - `ensure_installed` has been renamed, use `tools` instead.",
+					"",
+					"  BEFORE: `ensure_installed = { 'stylua' }`",
+					"  AFTER: `tools = { 'stylua' }`",
+					"",
+					"  For now, the list was merged into tools, but this will not be the case for future quarry.nvim releases.",
+					"",
 				}, "\n"),
 				vim.log.levels.WARN
 			)
 
-			vim.list_extend(server_tools, server.ensure_installed)
+			vim.list_extend(server_tools, u.tbl_filter_numeric_keys(server.ensure_installed))
 		end
 
-		-- register FileType event and install later
-		local group = vim.api.nvim_create_augroup("quarry_install_" .. name, { clear = true })
-		vim.api.nvim_create_autocmd("FileType", {
-			group = group,
-			pattern = server_filetypes,
-			callback = function()
-				vim.api.nvim_del_augroup_by_id(group)
-				_install(server_tools)
-			end,
-		})
+		-- TODO: remove this for next major release
+		if not vim.tbl_contains(server_tools, name) then
+			u.notify(
+				table.concat({
+					string.format("DEPRECATION for your '%s' configuration:", name),
+					"  - the lsp needs to be specified explicitly in the `tools` table",
+					"",
+					"  BEFORE: `tools = { 'stylua' }` -- lua_ls was installed automatically",
+					"  AFTER: `tools = { 'lua_ls', stylua' }` -- lua_ls must be specified",
+					"",
+					"  For now, the LSP was added to the tools, but this will not be the case for future quarry.nvim releases.",
+					"",
+				}, "\n"),
+				vim.log.levels.WARN
+			)
+
+			table.insert(server_tools, name)
+		end
+
+		if server.tools.lazy then
+			-- install when associated filetype is recognized (lazy)
+			local group = vim.api.nvim_create_augroup("quarry_install_" .. name, { clear = true })
+			vim.api.nvim_create_autocmd("FileType", {
+				group = group,
+				pattern = server_filetypes,
+				callback = function()
+					vim.api.nvim_del_augroup_by_id(group)
+					_install(server_tools)
+				end,
+			})
+		else
+			-- install now
+			_install(server_tools)
+		end
 	end
 end
 
